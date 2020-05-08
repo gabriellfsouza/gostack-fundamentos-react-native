@@ -41,14 +41,15 @@ const CartProvider: React.FC = ({ children }) => {
     async (item: Omit<Product, 'quantity'>) => {
       const idx = products.findIndex(c => c.id === item.id);
 
-      if (idx < 0) return [...products, { ...item, quantity: 1 }];
-      const next = [
-        ...products.slice(0, idx),
-        { ...products[idx], quantity: products[idx].quantity + 1 },
-        ...products.slice(idx + 1, products.length),
-      ];
+      const next =
+        idx < 0
+          ? [...products, { ...item, quantity: 1 }]
+          : [
+              ...products.slice(0, idx),
+              { ...products[idx], quantity: products[idx].quantity + 1 },
+              ...products.slice(idx + 1, products.length),
+            ];
       await AsyncStorage.setItem('@GoMarket:cart', JSON.stringify(next));
-
       return setProducts(next);
     },
     [products],
@@ -57,7 +58,7 @@ const CartProvider: React.FC = ({ children }) => {
   const increment = useCallback(
     async id => {
       const idx = products.findIndex(c => c.id === id);
-      if (!idx) return products;
+      if (idx < 0) return products;
       const next = [
         ...products.slice(0, idx),
         { ...products[idx], quantity: products[idx].quantity + 1 },
@@ -73,7 +74,7 @@ const CartProvider: React.FC = ({ children }) => {
   const decrement = useCallback(
     async id => {
       const idx = products.findIndex(c => c.id === id);
-      if (!idx) return products;
+      if (idx < 0) return products;
       const next =
         products[idx].quantity > 1
           ? [
