@@ -18,7 +18,7 @@ interface Product {
 
 interface CartContext {
   products: Product[];
-  addToCart(item: Product): void;
+  addToCart(item: Omit<Product, 'quantity'>): void;
   increment(id: string): void;
   decrement(id: string): void;
 }
@@ -49,8 +49,8 @@ const CartProvider: React.FC = ({ children }) => {
               { ...products[idx], quantity: products[idx].quantity + 1 },
               ...products.slice(idx + 1, products.length),
             ];
+      setProducts(next);
       await AsyncStorage.setItem('@GoMarket:cart', JSON.stringify(next));
-      return setProducts(next);
     },
     [products],
   );
@@ -64,9 +64,8 @@ const CartProvider: React.FC = ({ children }) => {
         { ...products[idx], quantity: products[idx].quantity + 1 },
         ...products.slice(idx + 1, products.length),
       ];
+      setProducts(next);
       await AsyncStorage.setItem('@GoMarket:cart', JSON.stringify(next));
-
-      return setProducts(next);
     },
     [products],
   );
@@ -86,12 +85,18 @@ const CartProvider: React.FC = ({ children }) => {
               ...products.slice(0, idx),
               ...products.slice(idx + 1, products.length),
             ];
-      await AsyncStorage.setItem('@GoMarket:cart', JSON.stringify(next));
-
-      return setProducts(next);
+      setProducts(next);
+      const result = await AsyncStorage.setItem(
+        '@GoMarket:cart',
+        JSON.stringify(next),
+      );
+      return result;
     },
     [products],
   );
+  useEffect(() => {
+    console.log('products', products);
+  }, [products]);
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
